@@ -1,5 +1,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdio.h>
 #include <dirent.h>
 #include <string.h>
 #include <fcntl.h> /* Why do I need this? What are AT_* constants in the man page? */
@@ -28,7 +29,7 @@ void fsize(char *name)
 		fprintf(stderr, "fsize: can't access %s\n", name);
 		return;
 	}
-	if((stbuf.st_mod & S_IFMT) == S_IFDIR)
+	if((stbuf.st_mode & S_IFMT) == S_IFDIR)
 		dirwalk(name, fsize);
 	printf("%8ld %s\n", (long)stbuf.st_size, name);
 }
@@ -36,24 +37,24 @@ void fsize(char *name)
 /* dirwalk: apply fcn to all files in dir */
 void dirwalk(char *dir, void (*fcn)(char *))
 {
-	char name[MAX_PATH];
+	char name[PATH_MAX];
 	struct dirent *dp;
 	DIR *dfd;
 
-	if((dfd = opendir(dfd)) == NULL)
+	if((dfd = opendir(dir)) == NULL)
 	{
 		fprintf(stderr, "dirwalk: can't open %s\n", dir);
 		return;
 	}
 	while((dp = readdir(dfd)) != NULL)
 	{
-		if(strcmp(dp->name, ".") == 0 || strcmp(dp->name, "..") == 0)
+		if(strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0)
 			continue;
-		if(strlen(dir)+strlen(dp->name)+2 > sizeof(name))
-			fprintf(stderr, "dirwalk: name %s/%s too long\n", dir, dp->name);
+		if(strlen(dir)+strlen(dp->d_name)+2 > sizeof(name))
+			fprintf(stderr, "dirwalk: name %s/%s too long\n", dir, dp->d_name);
 		else
 		{
-			sprintf(name, "%s/%s", dir, dp-name);
+			sprintf(name, "%s/%s", dir, dp->d_name);
 			(*fcn)(name);
 		}
 	}
