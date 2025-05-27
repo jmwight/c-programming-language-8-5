@@ -29,9 +29,23 @@ void fsize(char *name)
 		fprintf(stderr, "fsize: can't access %s\n", name);
 		return;
 	}
-	if((stbuf.st_mode & S_IFMT) == S_IFDIR)
+	mode_t ftyp = stbuf.st_mode & S_IFMT;
+	if(ftyp == S_IFDIR)
 		dirwalk(name, fsize);
-	printf("%8ld %s\n", (long)stbuf.st_size, name);
+	else if(ftyp == S_IFBLK || ftyp == S_IFCHR)
+	{
+		if(ftyp == S_IFBLK)
+			printf("typ: block\t");
+		else
+			printf("typ: char\t");
+		printf("dev id: %d\tinode: %lld\tlinks: %d %s\n", stbuf.st_rdev,
+				stbuf.st_ino, stbuf.st_nlink, name);
+	}
+	else
+	{
+		printf("size: %8ld\tblksize: %8ld %s\n", (long)stbuf.st_size,
+				stbuf.st_blksize, name);
+	}
 }
 
 /* dirwalk: apply fcn to all files in dir */
